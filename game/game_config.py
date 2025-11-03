@@ -7,6 +7,8 @@ class GameConfig:
     FPS = 60
     TITLE = "PyRace"
 
+    MAX_LAPS = 2  
+
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
     GRAY = (128, 128, 128)
@@ -18,7 +20,11 @@ class GameConfig:
     def load_spawn_positions():
         spawn_file = Path(__file__).parent.parent / "spawn_positions.json"
 
-        default_spawn = {"player": {"x": 2180, "y": 4700}}
+        default_spawn = {
+            "player": {"x": 2180, "y": 4700},
+            "ai_cars": [],
+            "finish_line": None
+        }
 
         if not spawn_file.exists():
             print(f"Ostrzeżenie: Plik {spawn_file} nie znaleziony. Używam domyślnej pozycji startowej.")
@@ -26,12 +32,7 @@ class GameConfig:
 
         try:
             with open(spawn_file, 'r') as f:
-                data = json.load(f)
-                # Wczytujemy tylko dane gracza, ignorujemy resztę
-                if "player" in data:
-                    return {"player": data["player"]}
-                else:
-                    return default_spawn
+                return json.load(f)  
         except Exception as e:
             print(f"Błąd ładowania spawn_positions.json: {e}. Używam domyślnej pozycji.")
             return default_spawn
