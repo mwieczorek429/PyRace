@@ -9,7 +9,7 @@ class AICar(Car):
         self.waypoints = self._apply_offset_to_waypoints(waypoints, racing_line_offset)
         self.current_waypoint = 0
         self.ai_base_speed = ai_speed
-        self.ai_target_speed = ai_speed 
+        self.ai_target_speed = ai_speed
         self.waypoint_threshold = 30
 
     def _apply_offset_to_waypoints(self, waypoints, offset):
@@ -37,7 +37,15 @@ class AICar(Car):
         return offset_waypoints
 
     def update(self, dt):
-        self._ai_navigate(dt)
+        if self.stunned:
+            self.stun_timer -= dt
+            self.speed = self.stun_reverse_speed
+            if self.stun_timer <= 0:
+                self.stunned = False
+                self.stun_timer = 0
+                self.speed = 0
+        else:
+            self._ai_navigate(dt)
 
         angle_rad = math.radians(self.angle)
         self.x += math.sin(angle_rad) * self.speed * dt
@@ -46,7 +54,6 @@ class AICar(Car):
     def _ai_navigate(self, dt):
         if not self.waypoints:
             return
-
 
         target_x, target_y = self.waypoints[self.current_waypoint]
 

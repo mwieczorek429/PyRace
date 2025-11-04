@@ -27,8 +27,17 @@ class Car:
         self.friction = 100
         self.brake_force = 500
         self.turn_speed = 180
+        
+        self.stunned = False
+        self.stun_timer = 0.0
+        self.stun_duration = 0.1
+        self.reverse_speed = -150
+        self.stun_reverse_speed = 0
 
     def handle_input(self, keys, dt):
+        if self.stunned:
+            return
+
         if keys[pygame.K_SPACE]:
             if self.speed > 0:
                 self.speed = max(0, self.speed - self.brake_force * dt)
@@ -51,6 +60,14 @@ class Car:
                 self.angle += self.turn_speed * dt
 
     def update(self, dt):
+        if self.stunned:
+            self.stun_timer -= dt
+            self.speed = self.stun_reverse_speed
+            if self.stun_timer <= 0:
+                self.stunned = False
+                self.stun_timer = 0
+                self.speed = 0
+
         angle_rad = math.radians(self.angle)
         self.x += math.sin(angle_rad) * self.speed * dt
         self.y -= math.cos(angle_rad) * self.speed * dt
@@ -65,3 +82,13 @@ class Car:
     def get_rect(self):
         return pygame.Rect(self.x - self.width // 2, self.y - self.height // 2,
                            self.width, self.height)
+
+    def apply_stun(self):
+        if not self.stunned:
+            self.stunned = True
+            if self.speed >= 0:
+                self.stun_timer = self.stun_duration
+                self.stun_reverse_speed = self.reverse_speed
+            else:
+                self.stun_timer = self.stun_duration * 0.6
+                self.stun_reverse_speed = -self.reverse_speed * 0.7
