@@ -6,10 +6,12 @@ from pathlib import Path
 
 from components.car import Car
 from components.track import Track
-from components.ai_car import AICar  
+from components.ai_car import AICar
+from components.effects import EffectManager
 from game.game_config import GameConfig
 from game.camera_controller import CameraController
-from game.race_manager import RaceManager  
+from game.race_manager import RaceManager
+from game.collision_manager import CollisionManager 
 
 pygame.init()
 
@@ -23,14 +25,19 @@ class Game:
 
         self.track = Track(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT)
 
+        self.effect_manager = EffectManager()
         self.camera = CameraController(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT)
-        self.race_manager = RaceManager(GameConfig.MAX_LAPS) 
+        self.race_manager = RaceManager(GameConfig.MAX_LAPS)
 
         self._load_spawn_positions()
-        
+
+        self.collision_manager = CollisionManager(
+            self.track, self.effect_manager
+        )
+
+        self.powerups = []
 
     def _load_spawn_positions(self):
-        """Load spawn positions and initialize cars."""
         spawn_data = GameConfig.load_spawn_positions()
 
         player_data = spawn_data["player"]
@@ -44,7 +51,6 @@ class Game:
             ]
             self.race_manager.set_finish_line(finish_line)
 
-        # Load AI cars
         racing_line = self.track.get_racing_line()
         self.ai_cars = []
 
@@ -60,8 +66,6 @@ class Game:
             self.ai_cars.append(ai_car)
 
         self._set_starting_angles()
-
-        # Initialize AI lap data
         self.race_manager.init_ai_lap_data(self.ai_cars)
 
     def _set_starting_angles(self):
@@ -129,11 +133,14 @@ class Game:
         self.race_manager.reset()
 
         self.player_car.speed = 0
+        self.player_car.stunned = False 
 
         for ai_car in self.ai_cars:
             ai_car.speed = 0
+            ai_car.stunned = False
 
         self._load_spawn_positions()
+        self.powerups = []
 
     def update(self):
         self.race_manager.update(self.dt, self.player_car, self.ai_cars)
@@ -147,6 +154,12 @@ class Game:
             if self.race_manager.is_race_active():
                 ai_car.update(self.dt)
 
+        camera_shake = self.collision_manager.update(self.player_car, self.ai_cars, self.powerups)
+        if camera_shake > 0:
+            self.camera.add_shake(camera_shake)
+
+        self.effect_manager.update(self.dt)
+
         self.camera.update(self.player_car.x, self.player_car.y, self.dt)
 
     def render(self):
@@ -157,10 +170,13 @@ class Game:
         if self.race_manager.finish_line:
             self._draw_finish_line(camera_x, camera_y)
 
+
         for ai_car in self.ai_cars:
             ai_car.draw(self.screen, camera_x, camera_y)
 
         self.player_car.draw(self.screen, camera_x, camera_y)
+
+        self.effect_manager.draw(self.screen, camera_x, camera_y)
 
         self._draw_ui_overlays()
 
@@ -251,9 +267,9 @@ class Game:
         y_offset = 220
 
         medal_colors = {
-            1: (255, 215, 0),    # Gold
-            2: (192, 192, 192),  # Silver
-            3: (205, 127, 50)    # Bronze
+            1: (255, 215, 0),
+            2: (192, 192, 192),
+            3: (205, 127, 50)
         }
 
         for result in self.race_manager.race_results:

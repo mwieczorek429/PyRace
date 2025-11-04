@@ -9,6 +9,9 @@ class CameraController:
         self.camera_y = 0
         self.camera_smoothness = 5.0
 
+        self.camera_shake = 0
+        self.shake_decay = 10.0
+
     def update(self, target_x, target_y, dt):
         target_camera_x = target_x - self.screen_width // 2
         target_camera_y = target_y - self.screen_height // 2
@@ -17,8 +20,16 @@ class CameraController:
         self.camera_x += (target_camera_x - self.camera_x) * lerp_factor
         self.camera_y += (target_camera_y - self.camera_y) * lerp_factor
 
+        if self.camera_shake > 0:
+            self.camera_shake = max(0, self.camera_shake - self.shake_decay * dt)
+
+    def add_shake(self, intensity):
+        self.camera_shake = max(self.camera_shake, intensity)
+
     def get_camera_offset(self):
-        return self.camera_x, self.camera_y
+        shake_x = random.uniform(-self.camera_shake, self.camera_shake) if self.camera_shake > 0 else 0
+        shake_y = random.uniform(-self.camera_shake, self.camera_shake) if self.camera_shake > 0 else 0
+        return self.camera_x + shake_x, self.camera_y + shake_y
 
     def get_camera_position(self):
         return self.camera_x, self.camera_y
