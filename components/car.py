@@ -27,16 +27,20 @@ class Car:
         self.friction = 100
         self.brake_force = 500
         self.turn_speed = 180
-        
+
         self.stunned = False
         self.stun_timer = 0.0
         self.stun_duration = 0.1
         self.reverse_speed = -150
         self.stun_reverse_speed = 0
 
+        self.active_effects = []
+
     def handle_input(self, keys, dt):
         if self.stunned:
             return
+
+        effective_max_speed = self.get_effective_max_speed()
 
         if keys[pygame.K_SPACE]:
             if self.speed > 0:
@@ -44,9 +48,9 @@ class Car:
             elif self.speed < 0:
                 self.speed = min(0, self.speed + self.brake_force * dt)
         elif keys[pygame.K_UP] or keys[pygame.K_w]:
-            self.speed = min(self.speed + self.acceleration * dt, self.max_speed)
+            self.speed = min(self.speed + self.acceleration * dt, effective_max_speed)
         elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
-            self.speed = max(self.speed - self.acceleration * dt, -self.max_speed / 2)
+            self.speed = max(self.speed - self.acceleration * dt, -effective_max_speed / 2)
         else:
             if self.speed > 0:
                 self.speed = max(0, self.speed - self.friction * dt)
@@ -59,7 +63,25 @@ class Car:
             if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
                 self.angle += self.turn_speed * dt
 
+    def update_effects(self, dt):
+        self.active_effects = [
+            {**effect, 'timer': effect['timer'] - dt}
+            for effect in self.active_effects
+            if effect['timer'] > dt
+        ]
+
+    def get_effective_max_speed(self):
+        effective_speed = self.max_speed
+        for effect in self.active_effects:
+            if effect['type'] == 'boost':
+                effective_speed *= effect['factor']
+            elif effect['type'] == 'slow':
+                effective_speed *= effect['factor']
+        return effective_speed
+
     def update(self, dt):
+        self.update_effects(dt)
+
         if self.stunned:
             self.stun_timer -= dt
             self.speed = self.stun_reverse_speed

@@ -8,10 +8,12 @@ from components.car import Car
 from components.track import Track
 from components.ai_car import AICar
 from components.effects import EffectManager
+from components.sound import SoundManager 
+from components import powerup
 from game.game_config import GameConfig
 from game.camera_controller import CameraController
 from game.race_manager import RaceManager
-from game.collision_manager import CollisionManager 
+from game.collision_manager import CollisionManager
 
 pygame.init()
 
@@ -25,17 +27,25 @@ class Game:
 
         self.track = Track(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT)
 
+        self.sound_manager = SoundManager()
         self.effect_manager = EffectManager()
         self.camera = CameraController(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT)
-        self.race_manager = RaceManager(GameConfig.MAX_LAPS)
+        self.race_manager = RaceManager(GameConfig.MAX_LAPS, self.sound_manager)
 
         self._load_spawn_positions()
 
         self.collision_manager = CollisionManager(
-            self.track, self.effect_manager
+            self.track, self.effect_manager, self.sound_manager
         )
 
-        self.powerups = []
+        self.powerups = powerup.spawn_powerups_on_track(self.track, num_hazards=8, num_boosts=5)
+
+        self.engine_sound_timer = random.uniform(
+            GameConfig.ENGINE_SOUND_MIN_INTERVAL,
+            GameConfig.ENGINE_SOUND_MAX_INTERVAL
+        )
+
+        self.sound_manager.play_music()
 
     def _load_spawn_positions(self):
         spawn_data = GameConfig.load_spawn_positions()
@@ -133,17 +143,25 @@ class Game:
         self.race_manager.reset()
 
         self.player_car.speed = 0
-        self.player_car.stunned = False 
+        self.player_car.stunned = False
 
         for ai_car in self.ai_cars:
             ai_car.speed = 0
             ai_car.stunned = False
 
         self._load_spawn_positions()
-        self.powerups = []
+        self.powerups = powerup.spawn_powerups_on_track(self.track, num_hazards=8, num_boosts=5)
 
     def update(self):
         self.race_manager.update(self.dt, self.player_car, self.ai_cars)
+
+        self.engine_sound_timer -= self.dt
+        if self.engine_sound_timer <= 0:
+            self.sound_manager.play_engine()
+            self.engine_sound_timer = random.uniform(
+                GameConfig.ENGINE_SOUND_MIN_INTERVAL,
+                GameConfig.ENGINE_SOUND_MAX_INTERVAL
+            )
 
         keys = pygame.key.get_pressed()
         if self.race_manager.is_race_active():
@@ -154,12 +172,14 @@ class Game:
             if self.race_manager.is_race_active():
                 ai_car.update(self.dt)
 
+        for pu in self.powerups:
+            pu.update(self.dt)
+
         camera_shake = self.collision_manager.update(self.player_car, self.ai_cars, self.powerups)
         if camera_shake > 0:
             self.camera.add_shake(camera_shake)
 
         self.effect_manager.update(self.dt)
-
         self.camera.update(self.player_car.x, self.player_car.y, self.dt)
 
     def render(self):
@@ -170,6 +190,8 @@ class Game:
         if self.race_manager.finish_line:
             self._draw_finish_line(camera_x, camera_y)
 
+        for pu in self.powerups:
+            pu.draw(self.screen, camera_x, camera_y)
 
         for ai_car in self.ai_cars:
             ai_car.draw(self.screen, camera_x, camera_y)

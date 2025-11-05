@@ -12,6 +12,15 @@ class AICar(Car):
         self.ai_target_speed = ai_speed
         self.waypoint_threshold = 30
 
+    def get_effective_ai_speed(self):
+        effective_speed = self.ai_base_speed
+        for effect in self.active_effects:
+            if effect['type'] == 'boost':
+                effective_speed *= effect['factor']
+            elif effect['type'] == 'slow':
+                effective_speed *= effect['factor']
+        return effective_speed
+
     def _apply_offset_to_waypoints(self, waypoints, offset):
         if offset == 0:
             return waypoints
@@ -37,6 +46,8 @@ class AICar(Car):
         return offset_waypoints
 
     def update(self, dt):
+        self.update_effects(dt) 
+
         if self.stunned:
             self.stun_timer -= dt
             self.speed = self.stun_reverse_speed
@@ -55,6 +66,7 @@ class AICar(Car):
         if not self.waypoints:
             return
 
+        self.ai_target_speed = self.get_effective_ai_speed()
         target_x, target_y = self.waypoints[self.current_waypoint]
 
         dx = target_x - self.x
