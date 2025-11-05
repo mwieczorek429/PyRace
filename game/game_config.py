@@ -7,7 +7,7 @@ class GameConfig:
     FPS = 60
     TITLE = "PyRace"
 
-    MAX_LAPS = 2  
+    MAX_LAPS = 2
 
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
@@ -15,6 +15,9 @@ class GameConfig:
     GREEN = (0, 255, 0)
     RED = (255, 0, 0)
     YELLOW = (255, 255, 0)
+
+    ENGINE_SOUND_MIN_INTERVAL = 5.0
+    ENGINE_SOUND_MAX_INTERVAL = 15.0
 
     @staticmethod
     def load_spawn_positions():
@@ -32,7 +35,7 @@ class GameConfig:
 
         try:
             with open(spawn_file, 'r') as f:
-                return json.load(f)  
+                return json.load(f)
         except Exception as e:
             print(f"Błąd ładowania spawn_positions.json: {e}. Używam domyślnej pozycji.")
             return default_spawn

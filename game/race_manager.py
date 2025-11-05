@@ -3,35 +3,29 @@ import math
 class RaceManager:
     """Manages race state, lap tracking, and race results."""
 
-    def __init__(self, max_laps): 
+    def __init__(self, max_laps, sound_manager): 
         self.max_laps = max_laps
+        self.sound_manager = sound_manager 
 
-        # Race state
         self.race_started = False
         self.countdown_active = False
         self.countdown_time = 1.0
         self.countdown_timer = 0.0
         self.race_finished = False
 
-        # Finish line
         self.finish_line = None
 
-        # Player lap tracking
         self.laps = 0
         self.last_side = None
         self.lap_message_timer = 0
         self.lap_cooldown_timer = 0
 
-        # Player lap times
         self.current_lap_time = 0.0
         self.best_lap_time = None
         self.lap_timer_running = False
         self.total_race_time = 0.0
 
-        # AI lap tracking
         self.ai_lap_data = {}
-
-        # Race results
         self.race_results = []
 
     def set_finish_line(self, finish_line):
@@ -52,7 +46,9 @@ class RaceManager:
     def start_countdown(self):
         self.countdown_active = True
         self.countdown_timer = self.countdown_time
-        # Dźwięk usunięty
+        # Nowe wywołanie
+        if self.sound_manager:
+            self.sound_manager.play_race_counter()
 
     def update(self, dt, player_car, ai_cars):
         if self.countdown_active:
@@ -94,7 +90,6 @@ class RaceManager:
         cross = dx * (player_car.y - y1) - dy * (player_car.x - x1)
         self.last_side = 1 if cross > 0 else -1
 
-        # AI cars
         for ai_car in ai_cars:
             ai_data = self.ai_lap_data.get(ai_car)
             if ai_data:
