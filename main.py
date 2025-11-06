@@ -7,8 +7,9 @@ from pathlib import Path
 from components.car import Car
 from components.track import Track
 from components.ai_car import AICar
+from components.hud import HUD 
 from components.effects import EffectManager
-from components.sound import SoundManager 
+from components.sound import SoundManager
 from components import powerup
 from game.game_config import GameConfig
 from game.camera_controller import CameraController
@@ -26,6 +27,9 @@ class Game:
         self.dt = 0
 
         self.track = Track(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT)
+        
+        self.hud = HUD(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT,
+                       self.track.width, self.track.height)
 
         self.sound_manager = SoundManager()
         self.effect_manager = EffectManager()
@@ -38,6 +42,7 @@ class Game:
             self.track, self.effect_manager, self.sound_manager
         )
 
+        self.hud.generate_minimap(self.track)
         self.powerups = powerup.spawn_powerups_on_track(self.track, num_hazards=8, num_boosts=5)
 
         self.engine_sound_timer = random.uniform(
@@ -199,6 +204,15 @@ class Game:
         self.player_car.draw(self.screen, camera_x, camera_y)
 
         self.effect_manager.draw(self.screen, camera_x, camera_y)
+
+        self.hud.draw(
+            self.screen,
+            self.player_car,
+            self.ai_cars,
+            self.race_manager.laps,
+            self.race_manager.current_lap_time,
+            self.race_manager.best_lap_time
+        )
 
         self._draw_ui_overlays()
 

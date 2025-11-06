@@ -9,7 +9,7 @@ class RaceManager:
 
         self.race_started = False
         self.countdown_active = False
-        self.countdown_time = 1.0
+        self.countdown_time = 3.15
         self.countdown_timer = 0.0
         self.race_finished = False
 
@@ -46,7 +46,6 @@ class RaceManager:
     def start_countdown(self):
         self.countdown_active = True
         self.countdown_timer = self.countdown_time
-        # Nowe wywołanie
         if self.sound_manager:
             self.sound_manager.play_race_counter()
 
