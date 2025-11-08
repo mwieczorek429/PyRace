@@ -2,8 +2,8 @@ import math
 from .car import Car
 
 class AICar(Car):
-    def __init__(self, x, y, waypoints, color=(0, 0, 255), ai_speed=1000, racing_line_offset=0):
-        super().__init__(x, y, color)
+    def __init__(self, x, y, waypoints, color=(0, 0, 255), ai_speed=1000, racing_line_offset=0, sprite_name="bolid.png"):
+        super().__init__(x, y, color, sprite_name)
         self.base_waypoints = waypoints
         self.racing_line_offset = racing_line_offset
         self.waypoints = self._apply_offset_to_waypoints(waypoints, racing_line_offset)
