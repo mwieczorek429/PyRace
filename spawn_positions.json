@@ -14,10 +14,11 @@
       "x": 2279,
       "y": 4878,
       "color": [
+        128,
         0,
-        0,
-        255
+        128
       ],
+      "sprite": "bolid_purple.png",
       "speed": 410,
       "offset": -50
     },
@@ -26,9 +27,10 @@
       "y": 4731,
       "color": [
         255,
-        165,
+        255,
         0
       ],
+      "sprite": "bolid_yellow.png",
       "speed": 420,
       "offset": 50
     },
@@ -40,6 +42,7 @@
         255,
         0
       ],
+      "sprite": "bolid_green.png",
       "speed": 400,
       "offset": 0
     }

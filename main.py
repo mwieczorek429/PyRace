@@ -76,7 +76,8 @@ class Game:
                 racing_line,
                 color=tuple(ai_data["color"]),
                 ai_speed=ai_data["speed"],
-                racing_line_offset=ai_data["offset"]
+                racing_line_offset=ai_data["offset"],
+                sprite_name=ai_data.get("sprite", "bolid.png")
             )
             self.ai_cars.append(ai_car)
 

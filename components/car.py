@@ -3,12 +3,12 @@ import math
 from pathlib import Path
 
 class Car:
-    def __init__(self, x, y, color=(255, 0, 0)):
+    def __init__(self, x, y, color=(255, 0, 0), sprite_name="bolid.png"):
         self.x = x
         self.y = y
         self.color = color
 
-        sprite_path = Path(__file__).parent.parent / "assets" / "images" / "bolid.png"
+        sprite_path = Path(__file__).parent.parent / "assets" / "images" / sprite_name
         loaded_sprite = pygame.image.load(str(sprite_path)).convert_alpha()
 
         scale_factor = 0.055
